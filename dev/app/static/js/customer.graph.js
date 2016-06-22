@@ -41,6 +41,7 @@ function customerProfilePlot(target_div){
   y: annualSpend,
   text: labels,
   mode: 'markers',
+  category: categories,
   marker: {
     color: ['rgb(93, 164, 214)', 'rgb(255, 144, 14)',  'rgb(44, 160, 101)', 'rgb(255, 65, 54)'],
     size: counts,
@@ -52,7 +53,7 @@ function customerProfilePlot(target_div){
 var data = [trace1];
 
 var layout = {
-   hovermode:'none',
+   hovermode:'closest',
   title: 'Customer Segmentation',
   showlegend: false,
    xaxis: {
@@ -79,6 +80,15 @@ var layout = {
 };
 
 Plotly.plot(gd, data, layout);
+
+gd.on('plotly_click', function(data){
+    var pts = '';
+    for(var i=0; i < data.points.length; i++){
+        pts = 'Category = '+data.points[i].data.category[data.points[i].pointNumber] + '\n\n';
+        console.log(data)
+    }
+    alert('Closest point clicked:\n\n'+pts);
+});
 
 window.onresize = function() {
     Plotly.Plots.resize(gd);
