@@ -14,12 +14,16 @@ var boxADS    = dc.numberDisplay("#number-ADS");
 var boxUPT    = dc.numberDisplay("#number-UPT");
 var boxAUR    = dc.numberDisplay("#number-AUR");
 var boxAAS    = dc.numberDisplay("#number-AAS");
+var ageDistributionChart = dc.rowChart('#age-distribution-chart');
+var incomeDistributionChart = dc.rowChart('#income-distribution-chart');
 
 d3.csv('/static/BWFakeData.csv', function (data) {
     // Since its a csv file we need to format the data a bit.
     var dateFormat = d3.time.format('%m/%d/%Y');
     var numberFormat = d3.format('.2f');
 	var categoryLabel=[ "Fashionistas","Enthusiasts" ,"Big Potential", "Moderates","Discount Seekers"];
+    var ageLabel=[ "<24 yo","25-34 yo" ,"35-44 yo", "45-54 yo","55-64 yo","+75 yo"];
+    var incomeLabel=[ "<50k","50-100k" ,"100-150k", "150-200k","+200k"];
 
     data.forEach(function (d) {
         // d.dd = dateFormat.parse(d.date);
@@ -29,7 +33,8 @@ d3.csv('/static/BWFakeData.csv', function (data) {
         d.ads = +d.ads;
         d.aur = +d.aur;
         d.upt = +d.upt;
-
+        d.age = +d.age;
+        d.income = +d.income;
     });
 
     //### Create Crossfilter Dimensions and Groups
@@ -38,13 +43,14 @@ d3.csv('/static/BWFakeData.csv', function (data) {
     var ndx = crossfilter(data);
     var all = ndx.groupAll();
 
+// Dimensions:
 
     // Dimension by category
     var catDim = ndx.dimension(function (d) {
         return d.category;
     });
 
-//To be able to synchronize across different charts, we need to replicate the dimension.
+    //To be able to synchronize across different charts, we need to replicate the dimension.
     var catDim2 = ndx.dimension(function (d) {
         return d.category;
     });
@@ -61,7 +67,40 @@ d3.csv('/static/BWFakeData.csv', function (data) {
         return d.category;
     });
 
+     var ageDim = ndx.dimension(function (d) {
+        if (d.age <= 24) {
+        return 0;}
+        else if (d.age > 24 && d.age <= 34) {
+            return 1;}
+        else if (d.age > 34 && d.age <= 44) {
+            return 2;}
+        else if (d.age > 44 && d.age <= 54) {
+            return 3;}
+        else if (d.age > 54 && d.age <= 64) {
+            return 4;}
+        else if (d.age > 64 && d.age <= 74) {
+            return 5;}
+        else if (d.age > 74) {
+            return 6;}
+        else console.log("Age do not fit into bins.");
+    });
 
+     var incomeDim = ndx.dimension(function (d) {
+        if (d.income <= 50000) {
+        return 0;}
+        else if (d.income > 50000 && d.age <= 100000) {
+            return 1;}
+        else if (d.income > 100000 && d.age <= 150000) {
+            return 2;}
+        else if (d.income > 150000 && d.age <= 200000) {
+            return 3;}
+        else if (d.income > 200000) {
+            return 4;}
+        else console.log("Income do not fit into bins.");
+    });
+
+
+// Groups
 	var customerBehaviourGroup =catDim.group().reduce(
         /* callback for when data is added to the current filter results */
         function (p, v) {
@@ -92,7 +131,6 @@ d3.csv('/static/BWFakeData.csv', function (data) {
             };
         }
     );
-
 
 
 
@@ -161,26 +199,33 @@ d3.csv('/static/BWFakeData.csv', function (data) {
         }
     );
 
-  var average = function(d) {
-      return d.count ? d.total / d.count : 0;
-  };
+    var distByAgeGroup =   ageDim.group();
+    var distByIncomeGroup =   incomeDim.group();
 
+    var average = function(d) {
+      return d.count ? d.total / d.count : 0;
+    };
+ 
 
 //Chart plotting
 
 
     categoryBubbleChart /* dc.bubbleChart('#category-bubble-chart', 'chartGroup') */
         // (_optional_) define chart width, `default = 200`
-        .width(700)
+        .width(800)
         // (_optional_) define chart height, `default = 200`
         .height(250)
         // (_optional_) define chart transition duration, `default = 750`
         .transitionDuration(1500)
         .margins({top: 10, right: 50, bottom: 30, left: 40})
         .dimension(catDim)
+                //legend
+        .legend(dc.legend().x(800).y(10).itemHeight(13).gap(5))
+        .brushOn(false)
+
         //The bubble chart expects the groups are reduced to multiple values which are used
         //to generate x, y, and radius for each key (bubble) in the group
-        .group(customerBehaviourGroup)
+        .group(customerBehaviourGroup, 'Monthly Index Average')
         // (_optional_) define color function or array for bubbles: [ColorBrewer](http://colorbrewer2.org/)
         .colors(colorbrewer.RdYlGn[9])
         //(optional) define color domain to match your data domain if you want to bind data or color
@@ -231,10 +276,13 @@ d3.csv('/static/BWFakeData.csv', function (data) {
 
         //Labels are displayed on the chart for each bubble. Titles displayed on mouseover.
         // (_optional_) whether chart should render labels, `default = true`
-        .renderLabel(false)
+        // .renderLabel(false)
         .label(function (p) {
-            return p.category;
+            return categoryLabel[p.key];
         })
+        //legend
+        .legend(dc.legend().x(800).y(10).itemHeight(13).gap(5))
+
         // (_optional_) whether chart should render titles, `default = false`
         .renderTitle(true)
         .title(function (p) {
@@ -267,7 +315,59 @@ d3.csv('/static/BWFakeData.csv', function (data) {
           .formatNumber(d3.format("$.3r"))
           .valueAccessor(average)
           .group(avgAasByCatGroup);
+// age distribution
 
+ ageDistributionChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
+        .width(360)
+        .height(180)
+        .margins({top: 20, left: 10, right: 10, bottom: 20})
+        .group(distByAgeGroup)
+        .dimension(ageDim)
+        // Assign colors to each value in the x scale domain
+        .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
+        .label(function (d) {
+            return ageLabel[d.key];
+        })
+        .label(function (d) {
+            if (ageDistributionChart.hasFilter() && !ageDistributionChart.hasFilter(d.key))
+                return ageLabel[d.key] + " (0%)";
+            var label = ageLabel[d.key];
+            if(all.value())
+                label += " (" + Math.floor(d.value / all.value() * 100) + "%)";
+            return label;
+        })
+        // Title sets the row text
+        .title(function (d) {
+            return ageLabel[d.key]+": "+d.value+ " individuals";
+        })
+        .elasticX(true)
+        .xAxis().ticks(5);
+
+    incomeDistributionChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
+        .width(360)
+        .height(180)
+        .margins({top: 20, left: 10, right: 10, bottom: 20})
+        .group(distByIncomeGroup)
+        .dimension(incomeDim)
+        // Assign colors to each value in the x scale domain
+        .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
+        // .label(function (d) {
+        //     return ageLabel[d.key];
+        // })
+        .label(function (d) {
+            if (incomeDistributionChart.hasFilter() && !incomeDistributionChart.hasFilter(d.key))
+                return incomeLabel[d.key] + " (0%)";
+            var label = incomeLabel[d.key];
+            if(all.value())
+                label += " (" + Math.floor(d.value / all.value() * 100) + "%)";
+            return label;
+        })
+        // Title sets the row text
+        .title(function (d) {
+            return incomeLabel[d.key]+": "+d.value+ " individuals";
+        })
+        .elasticX(true)
+        .xAxis().ticks(5);
 
     //simply call `.renderAll()` to render all charts on the page
     dc.renderAll();
