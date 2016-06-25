@@ -23,7 +23,7 @@ d3.csv('/static/BWFakeData.csv', function (data) {
     var numberFormat = d3.format('.2f');
 	var categoryLabel=[ "Fashionistas","Enthusiasts" ,"Big Potential", "Moderates","Discount Seekers"];
     var ageLabel=[ "<24 yo","25-34 yo" ,"35-44 yo", "45-54 yo","55-64 yo","+75 yo"];
-    var incomeLabel=[ "<50k","50-100k" ,"100-150k", "150-200k","+200k"];
+    var incomeLabel=[ "<10k","10-30k" ,"30-50k", "50-70k","+70k"];
 
     data.forEach(function (d) {
         // d.dd = dateFormat.parse(d.date);
@@ -86,15 +86,15 @@ d3.csv('/static/BWFakeData.csv', function (data) {
     });
 
      var incomeDim = ndx.dimension(function (d) {
-        if (d.income <= 50000) {
+        if (d.income <= 10000) {
         return 0;}
-        else if (d.income > 50000 && d.age <= 100000) {
+        else if (d.income > 10000 && d.income <= 30000) {
             return 1;}
-        else if (d.income > 100000 && d.age <= 150000) {
+        else if (d.income > 30000 && d.income <= 50000) {
             return 2;}
-        else if (d.income > 150000 && d.age <= 200000) {
+        else if (d.income > 50000 && d.income <= 70000) {
             return 3;}
-        else if (d.income > 200000) {
+        else if (d.income > 70000) {
             return 4;}
         else console.log("Income do not fit into bins.");
     });
@@ -343,7 +343,7 @@ d3.csv('/static/BWFakeData.csv', function (data) {
         .elasticX(true)
         .xAxis().ticks(5);
 
-    incomeDistributionChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
+    incomeDistributionChart 
         .width(360)
         .height(180)
         .margins({top: 20, left: 10, right: 10, bottom: 20})
