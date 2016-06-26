@@ -19,9 +19,12 @@ def login():
 			remember = request.form.get("remember", "no") == "yes"
 
 			if login_user(user, remember=remember):
+				print "logged in"
 				flash("Logged in!")
-				return redirect('/home')
+				return redirect('/dashboard')
 			else:
+				print "login error"
+
 				flash("unable to log you in")
 
     return render_template("/login/login.html")
@@ -86,6 +89,7 @@ def reauth():
 @login_required
 def logout():
     logout_user()
+    print "log out"
     flash("Logged out.")
     return redirect('/login')
 
