@@ -17,10 +17,10 @@ def not_found(error):
     #return render_template('404.html'), 404
     return "Oops!! It's 404. Page doesn't exist."
 
-# database connection
-app.config['MONGODB_SETTINGS'] = {'HOST':os.environ.get('MONGOLAB_URI'),'DB': 'FlaskLogin'}
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-app.debug = os.environ.get('DEBUG',False)
+# # database connection
+# app.config['MONGODB_SETTINGS'] = {'HOST':os.environ.get('MONGOLAB_URI'),'DB': 'FlaskLogin'}
+# app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+# app.debug = os.environ.get('DEBUG',False)
 
 db = MongoEngine(app) # connect MongoEngine with Flask App
 app.session_interface = MongoEngineSessionInterface(db) # sessions w/ mongoengine

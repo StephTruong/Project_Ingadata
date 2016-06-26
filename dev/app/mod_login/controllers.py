@@ -4,22 +4,23 @@ from jinja2 import TemplateNotFound
 from app import login_manager, flask_bcrypt
 from flask.ext.login import (current_user, login_required, login_user, logout_user, confirm_login, fresh_login_required)
 
-import models
 
-auth_flask_login = Blueprint('auth_flask_login', __name__, template_folder='templates')
+from User import User
+from models import  SignupForm, LoginForm
+mod_login = Blueprint('auth_flask_login', __name__, template_folder='templates')
 
-@auth_flask_login.route("/login", methods=["GET", "POST"])
+@mod_login.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST" and "email" in request.form:
         email = request.form["email"]
         userObj = User()
         user = userObj.get_by_email_w_password(email)
-     	if user and flask_bcrypt.check_password_hash(user.password,request.form["password"]) and user.is_active():
+     	if user and flask_bcrypt.check_password_hash(user.password,request.form["password"]) and user.is_active:
 			remember = request.form.get("remember", "no") == "yes"
 
 			if login_user(user, remember=remember):
 				flash("Logged in!")
-				return redirect('/notes/create')
+				return redirect('/home')
 			else:
 				flash("unable to log you in")
 
@@ -28,10 +29,10 @@ def login():
 #
 # Route disabled - enable route to allow user registration.
 #
-@auth_flask_login.route("/register", methods=["GET","POST"])
+@mod_login.route("/register", methods=["GET","POST"])
 def register():
 	
-	registerForm = forms.SignupForm(request.form)
+	registerForm = SignupForm(request.form)
 	current_app.logger.info(request.form)
 
 	if request.method == 'POST' and registerForm.validate() == False:
@@ -52,7 +53,7 @@ def register():
 			user.save()
 			if login_user(user, remember="no"):
 				flash("Logged in!")
-				return redirect('/')
+				return redirect('/login')
 			else:
 				flash("unable to log you in")
 
@@ -69,7 +70,7 @@ def register():
 
 	return render_template("/login/register.html", **templateData)
 
-@auth_flask_login.route("/reauth", methods=["GET", "POST"])
+@mod_login.route("/reauth", methods=["GET", "POST"])
 @login_required
 def reauth():
     if request.method == "POST":
@@ -78,10 +79,10 @@ def reauth():
         return redirect(request.args.get("next") or '/admin')
     
     templateData = {}
-    return render_template("/login/reauth.html", **templateData)
+    return render_template("/login/login.html", **templateData)
 
 
-@auth_flask_login.route("/logout")
+@mod_login.route("/logout")
 @login_required
 def logout():
     logout_user()
@@ -98,7 +99,7 @@ def load_user(id):
 		redirect('/login')
 	user = User()
 	user.get_by_id(id)
-	if user.is_active():
+	if user.is_active:
 		return user
 	else:
 		return None
