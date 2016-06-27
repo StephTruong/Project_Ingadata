@@ -1,5 +1,5 @@
 # Import flask and template operators
-from flask import Flask, render_template, request, redirect 
+from flask import Flask, render_template, request, redirect,url_for
 from flask.ext.mongoengine import MongoEngine, MongoEngineSessionInterface
 from flask.ext.login import LoginManager
 from flask.ext.bcrypt import Bcrypt
@@ -14,8 +14,13 @@ app.config.from_object('config')
 # Sample HTTP error handling
 @app.errorhandler(404)
 def not_found(error):
-    #return render_template('404.html'), 404
-    return "Oops!! It's 404. Page doesn't exist."
+    return render_template('404.html'), 404
+    #return "Oops!! It's 404. Page doesn't exist."
+
+@app.route("/", methods=['GET', 'POST'])
+def redirect_home():
+	return redirect(url_for('home.home_page'))
+
 
 # # database connection
 # app.config['MONGODB_SETTINGS'] = {'HOST':os.environ.get('MONGOLAB_URI'),'DB': 'FlaskLogin'}
