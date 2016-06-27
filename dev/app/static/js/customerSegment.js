@@ -17,6 +17,11 @@ var boxAAS    = dc.numberDisplay("#number-AAS");
 var ageDistributionChart = dc.rowChart('#age-distribution-chart');
 var incomeDistributionChart = dc.rowChart('#income-distribution-chart');
 
+//We set some variables for autoscaling dc charts.
+var bubbleChartWidth= document.getElementById('category-bubble-chart').offsetWidth;
+var ageDistributionChartWidth= document.getElementById('age-distribution-chart').offsetWidth;
+var incomeDistributionChartWidth= document.getElementById('income-distribution-chart').offsetWidth;
+
 d3.csv('/static/BWFakeData.csv', function (data) {
     // Since its a csv file we need to format the data a bit.
     var dateFormat = d3.time.format('%m/%d/%Y');
@@ -209,12 +214,11 @@ d3.csv('/static/BWFakeData.csv', function (data) {
 
 //Chart plotting
 
-
     categoryBubbleChart /* dc.bubbleChart('#category-bubble-chart', 'chartGroup') */
         // (_optional_) define chart width, `default = 200`
-        .width(800)
+        .width(bubbleChartWidth)
         // (_optional_) define chart height, `default = 200`
-        .height(250)
+        // .height(bubbleChartHeight)
         // (_optional_) define chart transition duration, `default = 750`
         .transitionDuration(1500)
         .margins({top: 10, right: 50, bottom: 30, left: 40})
@@ -318,8 +322,7 @@ d3.csv('/static/BWFakeData.csv', function (data) {
 // age distribution
 
  ageDistributionChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
-        .width(360)
-        .height(180)
+        .width(ageDistributionChartWidth)
         .margins({top: 20, left: 10, right: 10, bottom: 20})
         .group(distByAgeGroup)
         .dimension(ageDim)
@@ -344,8 +347,7 @@ d3.csv('/static/BWFakeData.csv', function (data) {
         .xAxis().ticks(5);
 
     incomeDistributionChart 
-        .width(360)
-        .height(180)
+        .width(incomeDistributionChartWidth)
         .margins({top: 20, left: 10, right: 10, bottom: 20})
         .group(distByIncomeGroup)
         .dimension(incomeDim)
@@ -372,3 +374,20 @@ d3.csv('/static/BWFakeData.csv', function (data) {
     //simply call `.renderAll()` to render all charts on the page
     dc.renderAll();
 });
+
+window.onresize = function(event) {
+  var newBubbleWidth = document.getElementById('category-bubble-chart').offsetWidth;
+  var newAgeWidth = document.getElementById('age-distribution-chart').offsetWidth;
+  var newIncomeWidth = document.getElementById('income-distribution-chart').offsetWidth;
+
+  categoryBubbleChart.width(newBubbleWidth).transitionDuration(0);
+  ageDistributionChart.width(newAgeWidth).transitionDuration(0);
+  incomeDistributionChart.width(newIncomeWidth).transitionDuration(0);
+
+    
+  dc.renderAll();  
+  categoryBubbleChart.transitionDuration(750);
+  ageDistributionChart.transitionDuration(750);
+  incomeDistributionChart.transitionDuration(750);
+
+};

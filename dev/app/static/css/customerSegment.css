@@ -7,3 +7,19 @@ font-size: 40px;
 .panel-blue numberbox-title  {
     color: #5cb85c;
 }
+
+#category-bubble-chart  {
+width:100%;
+min-height: 400px;
+}
+
+
+#age-distribution-chart {
+width:50%;
+min-height: 300px;
+}
+
+#income-distribution-chart  {
+width:50%;
+min-height: 300px;
+}
