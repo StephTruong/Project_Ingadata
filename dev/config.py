@@ -16,5 +16,5 @@ MONGODB_SETTINGS = {
 	'db': 'AURORA01',
     'host': 'mongodb://127.0.0.1:27017/'
 }
-SECRET_KEY="12345"
+SECRET_KEY="Pa3da!L0ves8amb00"
 DATABASE_CONNECT_OPTIONS = {}

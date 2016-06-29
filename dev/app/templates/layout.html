@@ -39,6 +39,20 @@
                <a class="navbar-brand" href="/dashboard">Aurora Insights Platform</a>
             </div>
             <!-- /.navbar-header -->
+            <ul class="nav navbar-top-links navbar-left">
+               <li class="dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                  <i class="fa fa-tachometer fa-fw"></i>  <i class="fa fa-caret-down"></i>
+                  </a>
+                  <ul class="dropdown-menu dropdown-user">
+                           
+                       <li><a href="/dashboard"><i class="fa fa-tachometer fa-fw"></i> Dashboard</a></li>
+                     
+                  </ul>
+                  <!-- /.dropdown-dashboard -->
+               </li>
+               <!-- /.dropdown -->
+            </ul>
             <ul class="nav navbar-top-links navbar-right">
                <li class="dropdown">
                   <a class="dropdown-toggle" data-toggle="dropdown" href="#">
@@ -68,7 +82,6 @@
 
          {% block main %}{% endblock %}
          
-         <hr>
          <!-- /.row -->
       </div>
       <!-- /#page-wrapper -->
