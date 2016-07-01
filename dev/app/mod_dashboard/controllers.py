@@ -6,7 +6,6 @@ from flask.ext.login import (current_user, login_required, login_user, logout_us
 from app import app
 import json
 import models
-import User
 
 # Define the blueprint: 'dashboard', set its url prefix: app.url/dashboard
 mod_dashboard = Blueprint('dashboard', __name__, url_prefix='/dashboard')
@@ -21,5 +20,12 @@ def make_session_permanent():
 @mod_dashboard.route('/', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-    return render_template("dashboard/index.html")
+
+	
+	template_data= {
+		'customerData':json.dumps(models.customer_stats.objects.to_json())
+			}
+
+	return render_template("dashboard/index.html", **template_data)
+
 

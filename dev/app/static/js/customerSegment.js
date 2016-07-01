@@ -22,9 +22,8 @@ var bubbleChartWidth= document.getElementById('category-bubble-chart').offsetWid
 var ageDistributionChartWidth= document.getElementById('age-distribution-chart').offsetWidth;
 var incomeDistributionChartWidth= document.getElementById('income-distribution-chart').offsetWidth;
 
-d3.csv('/static/BWFakeData.csv', function (data) {
-    // Since its a csv file we need to format the data a bit.
-    var dateFormat = d3.time.format('%m/%d/%Y');
+var data= JSON.parse(customerData)
+
     var numberFormat = d3.format('.2f');
 	var categoryLabel=[ "Fashionistas","Enthusiasts" ,"Big Potential", "Moderates","Discount Seekers"];
     var ageLabel=[ "<24 yo","25-34 yo" ,"35-44 yo", "45-54 yo","55-64 yo","+75 yo"];
@@ -371,9 +370,10 @@ d3.csv('/static/BWFakeData.csv', function (data) {
         .elasticX(true)
         .xAxis().ticks(5);
 
+
+
     //simply call `.renderAll()` to render all charts on the page
     dc.renderAll();
-});
 
 window.onresize = function(event) {
   var newBubbleWidth = document.getElementById('category-bubble-chart').offsetWidth;
@@ -391,3 +391,10 @@ window.onresize = function(event) {
   incomeDistributionChart.transitionDuration(750);
 
 };
+
+
+
+
+// render the table
+ 
+

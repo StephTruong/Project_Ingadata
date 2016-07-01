@@ -1,32 +1,25 @@
 # -*- coding: utf-8 -*-
-import os
-from flask.ext.mongoengine.wtf import model_form
-from wtforms.fields import *
-from flask.ext.mongoengine.wtf.orm import validators
-import datetime
 from app import db
+import datetime
+
+    
+class customer_stats(db.Document):
+	category = db.IntField()
+	annualSpent     = db.DecimalField()   
+	ads      = db.DecimalField()   
+	aur      = db.DecimalField()   
+	upt      = db.DecimalField()   
+	numberDept      = db.DecimalField()   
+	age      = db.DecimalField()   
+	income          = db.DecimalField()   
+	category2016    = db.IntField()   
+
+
 
 class User(db.Document):
-    email = db.EmailField(unique=True)
-    password = db.StringField(default=True)
-    active = db.BooleanField(default=True)
-    isAdmin = db.BooleanField(default=False)
-    timestamp = db.DateTimeField(default=datetime.datetime.now())
+	password = db.StringField(default=True)
+	email = db.EmailField(unique=True)
+	active = db.BooleanField(default=True)
+	isAdmin = db.BooleanField(default=False)
+	timestamp = db.DateTimeField(default=datetime.datetime.now())
     
-class Note(db.Document):
-    title = db.StringField(required=True,max_length=120)
-    content = db.StringField()
-    last_updated = db.DateTimeField(default=datetime.datetime.now())
-    user = db.ReferenceField(User)
-    
-user_form = model_form(User, exclude=['password'])
-
-
-# Signup Form created from user_form
-class SignupForm(user_form):
-    password = PasswordField('Password', validators=[validators.Required(), validators.EqualTo('confirm', message='Passwords must match')])
-    confirm = PasswordField('Repeat Password')
-
-# Login form will provide a Password field (WTForm form field)
-class LoginForm(user_form):
-    password = PasswordField('Password',validators=[validators.Required()])
