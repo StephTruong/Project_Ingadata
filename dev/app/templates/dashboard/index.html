@@ -170,11 +170,13 @@
                      </div>
                      <!-- /.panel-heading -->
                      <div class="panel-body">
-                        <div id="peopleTable" >
-                           <strong>Migration Matrix</strong> (radius: count)
+                          <strong>Migration Matrix</strong> 
 
+                           <div class="table-responsive">
+                              <table  id="migration-matrix" class="table table-bordered table-hover table-striped">
+                              </table>
+                            </div>
                            <div class="clearfix"></div>
-                        </div>
                      </div>
                      <!-- /.panel-body -->
                   </div>
@@ -185,12 +187,16 @@
 {% endblock %}
 
 {% block scripts %}
+      <!-- jQuery -->
+      <script src="/static/js/jquery.min.js"></script>
+
       <!-- DC charts JavaScript -->
       <script type="text/javascript" src="/static/js/d3.js"></script>
       <script type="text/javascript" src="/static/js/crossfilter.js"></script>
       <script type="text/javascript" src="/static/js/dc.js"></script>
       <script type="text/javascript" src="/static/js/colorbrewer.js"></script>
       <!-- application custom javascript -->
-      <script>var customerData= {{customerData|safe }};</script>
+      <script> var customerData= {{customerData|safe }};      </script>
+      <script> var migrationData= {{migrationData|safe }};     </script>
       <script src="/static/js/customerSegment.js"></script>
 {% endblock %}
