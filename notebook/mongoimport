@@ -1,0 +1,1 @@
+mongoimport -d AURORA01 -c customer_stats --type csv --file BWFakeDataLarge.csv --headerline
