@@ -4,7 +4,7 @@ from flask import Blueprint, request, render_template, \
                   jsonify
 from flask.ext.login import (current_user, login_required, login_user, logout_user, confirm_login, fresh_login_required)
 from app import app
-import json, pandas
+import json, pandas as pd, numpy as np
 import models
 
 # Define the blueprint: 'dashboard', set its url prefix: app.url/dashboard
@@ -20,19 +20,38 @@ def make_session_permanent():
 @mod_dashboard.route('/', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-
-	customerJson=json.dumps(models.customer_stats.objects.to_json())
-	df= pandas.read_json(eval(customerJson))
-	migrationsStacked = df.groupby(['category','category2016']).agg({'ads' : 'sum'}) 
+	customerJson = json.dumps(models.customer_stats.objects.to_json())
+	df= pd.read_json(eval(customerJson))
+	
+	# Segment yearly migration pattern
+	migrationsStacked = df.groupby(['category','category2016']).agg({'annualSpent' : 'sum'})
 	migrations = migrationsStacked.unstack(level=-1)
 	migrations = migrations.fillna(0)
 	migrations.columns= migrations.columns.droplevel()
-	migrationJson = migrations.apply(lambda x: 100*x/float(x.sum()),axis=1).round(2).to_json()
-	print migrationJson
+	migrations = migrations.apply(lambda x: 100*x/float(x.sum()),axis=1).round(1)
+	migrationJson = migrations.T.to_json()
+	
+	# Value impact
+	catAnnualSpent = df.groupby('category').sum()['annualSpent']
+	catAnnualSpentEvolution=[]
+	catAnnualSpentEvolution.append(catAnnualSpent.values)
+	prevCAS = (catAnnualSpent.values).dot(migrations.values/100)
+	catAnnualSpentEvolution.append(prevCAS)
 
+	for i in range(10):
+		prevCAS = prevCAS[0:-1,].dot(migrations.values/100)
+		catAnnualSpentEvolution.append( prevCAS)
+
+
+	catAnnualSpentEvoSum = pd.DataFrame(catAnnualSpentEvolution).sum(axis=1)
+	catAnnualSpentEvoSum2 = catAnnualSpentEvoSum
+	newdf = pd.DataFrame({"Default":catAnnualSpentEvoSum,"Alt1":catAnnualSpentEvoSum2+abs(np.random.rand(12)*50000),"Year": [int(i) for i in range(12)]})
+	valueImpactJson = newdf.to_json(orient="records")
+	
 	template_data= {
 		'customerData': customerJson,
-		'migrationData': migrationJson
+		'migrationData': migrationJson,
+		'valueImpactData': valueImpactJson
 		}
 
 	return render_template("dashboard/index.html", **template_data)

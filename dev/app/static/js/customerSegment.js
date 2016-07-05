@@ -16,6 +16,7 @@ var boxAUR    = dc.numberDisplay("#number-AUR");
 var boxAAS    = dc.numberDisplay("#number-AAS");
 var ageDistributionChart = dc.rowChart('#age-distribution-chart');
 var incomeDistributionChart = dc.rowChart('#income-distribution-chart');
+var valueImpactChart = dc.compositeChart('#value-impact-chart');
 
 //We set some variables for autoscaling dc charts.
 var bubbleChartWidth= document.getElementById('category-bubble-chart').offsetWidth;
@@ -24,13 +25,7 @@ var incomeDistributionChartWidth= document.getElementById('income-distribution-c
 
 
 customerData = $.parseJSON(customerData);
-console.log(migrationData)
-
-// migrationData = $.parseJSON(migrationData);
-// console.log(migrationData)
-// var customerData =  $('#mongo-data').data();
-// customerData= JSON.parse(customerData)
-// migrationData= JSON.parse(migrationData)
+// valueImpactData = $.parseJSON(valueImpactData);
 
 var numberFormat = d3.format('.2f');
 var categoryLabel=[ "Fashionistas","Enthusiasts" ,"Big Potential", "Moderates","Discount Seekers"];
@@ -54,6 +49,11 @@ customerData.forEach(function (d) {
 //See the [crossfilter API](https://github.com/square/crossfilter/wiki/API-Reference) for reference.
 var ndx = crossfilter(customerData);
 var all = ndx.groupAll();
+
+//See the [crossfilter API](https://github.com/square/crossfilter/wiki/API-Reference) for reference.
+var ndxImpact = crossfilter(valueImpactData);
+var allImpact = ndxImpact.groupAll();
+
 
 // Dimensions:
 
@@ -111,6 +111,7 @@ var catDim5 = ndx.dimension(function (d) {
     else console.log("Income do not fit into bins.");
 });
 
+ var yearDim = ndxImpact.dimension(function (d) { return d["Year"]; });
 
 // Groups
 var customerBehaviourGroup =catDim.group().reduce(
@@ -219,6 +220,13 @@ var average = function(d) {
 };
 
 
+
+
+var defaultGroup = yearDim.group().reduceSum(function (d) { return d["Default"]; });
+var alt1Group = yearDim.group().reduceSum(function (d) { return d["Alt1"]; });
+
+
+
 //Chart plotting
 
 categoryBubbleChart /* dc.bubbleChart('#category-bubble-chart', 'chartGroup') */
@@ -233,12 +241,11 @@ categoryBubbleChart /* dc.bubbleChart('#category-bubble-chart', 'chartGroup') */
             //legend
     .legend(dc.legend().x(800).y(10).itemHeight(13).gap(5))
     .brushOn(false)
-
     //The bubble chart expects the groups are reduced to multiple values which are used
     //to generate x, y, and radius for each key (bubble) in the group
     .group(customerBehaviourGroup, 'Monthly Index Average')
     // (_optional_) define color function or array for bubbles: [ColorBrewer](http://colorbrewer2.org/)
-    .colors(colorbrewer.RdYlGn[9])
+    .colors(colorbrewer.Dark2[8])
     //(optional) define color domain to match your data domain if you want to bind data or color
     .colorDomain([0, 5])
     //##### Accessors
@@ -283,6 +290,7 @@ categoryBubbleChart /* dc.bubbleChart('#category-bubble-chart', 'chartGroup') */
     .xAxisLabel('Number of Department Shopped')
     // (_optional_) render a vertical axis lable left of the y axis
     .yAxisLabel('Average Annual Spending')
+    
     //##### Labels and  Titles
 
     //Labels are displayed on the chart for each bubble. Titles displayed on mouseover.
@@ -378,6 +386,28 @@ incomeDistributionChart
     .elasticX(true)
     .xAxis().ticks(5);
 
+//migration value impact
+valueImpactChart.width(1160)
+    .height(250)
+    .margins({ top: 10, right: 10, bottom: 20, left: 40 })
+    .dimension(yearDim)
+    .transitionDuration(500)
+    .elasticY(true)
+    .brushOn(false)
+    .legend(dc.legend().x(800).y(10).itemHeight(13).gap(5))
+    .valueAccessor(function (d) {
+        return d.value;
+    })
+    .title(function (d) {
+        return "\Migration Setting: " + d.key;
+
+    })
+    .x(d3.scale.linear().domain([0, 12]))
+    .compose([
+        dc.lineChart(valueImpactChart).group(defaultGroup, "Default"),
+        dc.lineChart(valueImpactChart).colors(['#9182bd']).group(alt1Group)
+       
+    ]);
 
 
 //simply call `.renderAll()` to render all charts on the page
@@ -404,8 +434,7 @@ window.onresize = function(event) {
 //migration table 
 
 function drawTable(data,container) {
-    console.log(Object.keys(data))
-    drawHeader(Object.keys(data),container);
+    drawHeader(Object.keys(data[0]),container);
     for (var i = 0; i < Object.keys(data).length; i++) {
         drawRow(data[i],container, i);
     }
@@ -414,8 +443,7 @@ function drawTable(data,container) {
 function drawHeader(rowData,container) {
     
     var row = $("<tr />")
-    console.log(Object.keys(rowData))
-    row.append($("<th>" +"</th>"));
+    row.append($("<th>From/To</th>"));
     $(container).append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it   
     for (var i = 0; i < Object.keys(rowData).length; i++) {
         row.append($("<th>" + rowData[i] + "</th>"));
@@ -424,8 +452,6 @@ function drawHeader(rowData,container) {
 function drawRow(rowData,container, lineNumber) {
 
     var row = $("<tr />")
-    console.log(Object.keys(rowData))
-
     $(container).append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
     row.append($("<th>" + lineNumber+ "</th>"));
     
@@ -434,4 +460,6 @@ function drawRow(rowData,container, lineNumber) {
        } 
 }
  drawTable(migrationData,"#migration-matrix");
+
+
 
