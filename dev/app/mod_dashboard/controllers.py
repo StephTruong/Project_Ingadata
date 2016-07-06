@@ -24,28 +24,42 @@ def dashboard():
 	df= pd.read_json(eval(customerJson))
 	
 	# Segment yearly migration pattern
-	migrationsStacked = df.groupby(['category','category2016']).agg({'annualSpent' : 'sum'})
+	migrationsStacked = df.groupby(['prevCategory','category']).agg({'annualSpent' : 'count'})
 	migrations = migrationsStacked.unstack(level=-1)
-	migrations = migrations.fillna(0)
 	migrations.columns= migrations.columns.droplevel()
-	migrations = migrations.apply(lambda x: 100*x/float(x.sum()),axis=1).round(1)
-	migrationJson = migrations.T.to_json()
-	
-	# Value impact
+	migrations = migrations.fillna(0)
+	migrationsToProspect = migrations.sum(axis=1)*0.06
+	migrations= pd.concat([migrations,migrationsToProspect ],axis=1)
+	migrations.columns = [0, 1, 2, 3, 4, 5]
+	migrations = migrations.apply(lambda x: 100*x/float(x.sum()),axis=1).round(2)
+	migrationJson= migrations.T.to_json()
+
+	### Value impact
+	# Calculate the average spending per person binned by segment
 	catAnnualSpent = df.groupby('category').sum()['annualSpent']
+	catAnnualSpent[5]=0
+	annualSpentAvg = catAnnualSpent/migrations.sum(axis=0)
+	annualSpentAvg[5] = 0
+
+	# Calculate counts per segment
+	prospectPool = 10000 # aka the pool of potential customer (includes current customer)
+	catCount = df.groupby('category').count()['annualSpent']
+	catCount[5]= prospectPool - catCount.sum()
+	
+	# Matrix multiplication Vector of count .* Vector annual spending average * Migration matrix
 	catAnnualSpentEvolution=[]
-	catAnnualSpentEvolution.append(catAnnualSpent.values)
-	prevCAS = (catAnnualSpent.values).dot(migrations.values/100)
-	catAnnualSpentEvolution.append(prevCAS)
+	catAnnualSpentEvolution.append(annualSpentAvg*catCount)
+	prevCount = (catCount.values).dot(migrations.values/100)
+	catAnnualSpentEvolution.append(annualSpentAvg*prevCount)
 
-	for i in range(10):
-		prevCAS = prevCAS[0:-1,].dot(migrations.values/100)
-		catAnnualSpentEvolution.append( prevCAS)
+	for i in range(11):
+	    prevCount = prevCount.dot(migrations.values/100)
+	    catAnnualSpentEvolution.append(annualSpentAvg*prevCount)
 
-
+	#Export results to JSON
 	catAnnualSpentEvoSum = pd.DataFrame(catAnnualSpentEvolution).sum(axis=1)
-	catAnnualSpentEvoSum2 = catAnnualSpentEvoSum
-	newdf = pd.DataFrame({"Default":catAnnualSpentEvoSum,"Alt1":catAnnualSpentEvoSum2+abs(np.random.rand(12)*50000),"Year": [int(i) for i in range(12)]})
+	catAnnualSpentEvoSum2 = catAnnualSpentEvoSum #second dataset for drawing test purpose
+	newdf = pd.DataFrame({"Default":catAnnualSpentEvoSum,"Alt1":catAnnualSpentEvoSum2+abs(np.random.rand(13)*500000),"Year": [int(i) for i in range(13)]})
 	valueImpactJson = newdf.to_json(orient="records")
 	
 	template_data= {
@@ -53,7 +67,7 @@ def dashboard():
 		'migrationData': migrationJson,
 		'valueImpactData': valueImpactJson
 		}
-
+	print template_data
 	return render_template("dashboard/index.html", **template_data)
 
 
