@@ -67,7 +67,6 @@ def dashboard():
 		'migrationData': migrationJson,
 		'valueImpactData': valueImpactJson
 		}
-	print template_data
 	return render_template("dashboard/index.html", **template_data)
 
 
