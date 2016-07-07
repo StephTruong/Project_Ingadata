@@ -10,7 +10,7 @@
                <!-- /.col-lg-12 -->
             </div>
             <div class="row">
-               <div class="col-lg-12">
+               <div class="col-lg-8">
                   <div class="panel panel-default">
                      <div class="panel-heading">
                         <i class="fa fa-users fa-fw"></i> Customer Profile Segmentation 
@@ -28,10 +28,10 @@
                   </div>
                   <!-- /.panel -->
                </div>
-            </div>
+          
             <!-- /.col-lg-8 -->
-            <div class="row">
-               <div class="col-lg-3 col-sm-6 col-xs-12">
+     
+               <div class="col-lg-4 col-sm-6 col-xs-12">
                   <div class="panel panel-primary">
                      <div class="panel-footer">
                            <span class="pull-left"><div class="numberbox-title">Average Order Size (AOS)</div></span>
@@ -57,7 +57,7 @@
                   
                   </div>
                </div>
-                <div class="col-lg-3 col-sm-6 col-xs-12">
+                <div class="col-lg-4 col-sm-6 col-xs-12">
                   <div class="panel panel-green">
                      <div class="panel-footer">
                            <span class="pull-left"><div class="numberbox-title">Average Unit Retail (AUR)</div></span>
@@ -83,7 +83,7 @@
                   
                   </div>
                </div>
-                <div class="col-lg-3 col-sm-6 col-xs-12">
+                <div class="col-lg-4 col-sm-6 col-xs-12">
                   <div class="panel panel-yellow">
                      <div class="panel-footer">
                            <span class="pull-left"><div class="numberbox-title">Units Per Trip (UPT)</div></span>
@@ -109,7 +109,7 @@
                   
                   </div>
                </div>
-                <div class="col-lg-3 col-sm-6 col-xs-12">
+                <div class="col-lg-4 col-sm-6 col-xs-12">
                   <div class="panel panel-red">
                      <div class="panel-footer">
                            <span class="pull-left"><div class="numberbox-title">Average Annual Spend (AAS) </div></span>
@@ -132,7 +132,7 @@
                      </div>
                   </div>
                </div>
-            </div>
+           </div>
             <div class="row">
                <div class="col-lg-12">
                   <div class="panel panel-default">
@@ -176,7 +176,7 @@
                           <strong>Migration Matrix</strong> 
 
                            <div class="table-responsive">
-                              <table  id="migration-matrix" class="table table-bordered table-hover table-striped">
+                              <table  id="migration-matrix"  style="width:480px;height:500px;">
                               </table>
                            </div>
                         </div>
@@ -204,22 +204,26 @@
 {% block scripts %}
       <!-- jQuery -->
       <script src="/static/js/jquery.min.js"></script>
+      <script src="/static/js/jquery.event.drag-2.2.js"></script>
       <!-- Bootstrap Core JavaScript -->
       <script src="/static/js/bootstrap.min.js"></script>
       <!-- Metis Menu Plugin JavaScript -->
       <script src="/static/js/metisMenu.min.js"></script>
       <!-- Custom Theme JavaScript -->
       <script src="/static/js/sb-admin-2.js"></script>
-  
       <!-- DC charts JavaScript -->
       <script type="text/javascript" src="/static/js/d3.js"></script>
       <script type="text/javascript" src="/static/js/crossfilter.js"></script>
       <script type="text/javascript" src="/static/js/dc.js"></script>
       <script type="text/javascript" src="/static/js/colorbrewer.js"></script>
+      <!--slick grid   -->
+      <script type="text/javascript" src="/static/js/slick.core.js"></script>
+      <script type="text/javascript" src="/static/js/slick.grid.js"></script>
       <!-- application custom javascript -->
       <script> var customerData= {{customerData|safe }};      </script>
       <script> var migrationData= {{migrationData|safe }};     </script>
       <script> var valueImpactData= {{valueImpactData|safe }};     </script>
+
 
       <script src="/static/js/customerSegment.js"></script>
 {% endblock %}

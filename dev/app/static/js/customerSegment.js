@@ -32,17 +32,17 @@ var categoryLabel=[ "Fashionistas","Enthusiasts" ,"Big Potential", "Moderates","
 var ageLabel=[ "<24 yo","25-34 yo" ,"35-44 yo", "45-54 yo","55-64 yo","+75 yo"];
 var incomeLabel=[ "<10k","10-30k" ,"30-50k", "50-70k","+70k"];
 
-customerData.forEach(function (d) {
-    // d.dd = dateFormat.parse(d.date);
-    // d.month = d3.time.month(d.dd); // pre-calculate month for better performance
-    d.annualSpent = +d.annualSpent; // coerce to number
-    d.numberDept  = +d.numberDept;
-    d.ads = +d.ads;
-    d.aur = +d.aur;
-    d.upt = +d.upt;
-    d.age = +d.age;
-    d.income = +d.income;
-});
+// customerData.forEach(function (d) {
+//     // d.dd = dateFormat.parse(d.date);
+//     // d.month = d3.time.month(d.dd); // pre-calculate month for better performance
+//     d.annualSpent = +d.annualSpent; // coerce to number
+//     d.numberDept  = +d.numberDept;
+//     d.ads = +d.ads;
+//     d.aur = +d.aur;
+//     d.upt = +d.upt;
+//     d.age = +d.age;
+//     d.income = +d.income;
+// });
 
 //### Create Crossfilter Dimensions and Groups
 
@@ -238,7 +238,6 @@ categoryBubbleChart /* dc.bubbleChart('#category-bubble-chart', 'chartGroup') */
     .transitionDuration(1500)
     .margins({top: 10, right: 50, bottom: 30, left: 40})
     .dimension(catDim)
-            //legend
     .legend(dc.legend().x(800).y(10).itemHeight(13).gap(5))
     .brushOn(false)
     //The bubble chart expects the groups are reduced to multiple values which are used
@@ -250,7 +249,6 @@ categoryBubbleChart /* dc.bubbleChart('#category-bubble-chart', 'chartGroup') */
     .colorDomain([0, 5])
     //##### Accessors
     //Accessor functions are applied to each value returned by the grouping
-
     // `.colorAccessor` - the returned value will be passed to the `.colors()` scale to determine a fill color
     .colorAccessor(function (d) {
         return d.key;
@@ -269,12 +267,10 @@ categoryBubbleChart /* dc.bubbleChart('#category-bubble-chart', 'chartGroup') */
         return p.value.count;
     })
     .maxBubbleRelativeSize(0.05)
-
     .x(d3.scale.linear().domain([0, 20]))
     .y(d3.scale.linear().domain([0, 3000]))
     .r(d3.scale.linear().domain([0, 200]))
     //##### Elastic Scaling
-
     //`.elasticY` and `.elasticX` determine whether the chart should rescale each axis to fit the data.
     .elasticY(true)
     .elasticX(true)
@@ -344,9 +340,6 @@ ageDistributionChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
     // Assign colors to each value in the x scale domain
     .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
     .label(function (d) {
-        return ageLabel[d.key];
-    })
-    .label(function (d) {
         if (ageDistributionChart.hasFilter() && !ageDistributionChart.hasFilter(d.key))
             return ageLabel[d.key] + " (0%)";
         var label = ageLabel[d.key];
@@ -359,7 +352,6 @@ ageDistributionChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
         return ageLabel[d.key]+": "+d.value+ " individuals";
     })
     .elasticX(true)
-    .xAxisLabel('Count')
     .xAxis().ticks(5);
 
 incomeDistributionChart 
@@ -369,9 +361,6 @@ incomeDistributionChart
     .dimension(incomeDim)
     // Assign colors to each value in the x scale domain
     .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
-    // .label(function (d) {
-    //     return ageLabel[d.key];
-    // })
     .label(function (d) {
         if (incomeDistributionChart.hasFilter() && !incomeDistributionChart.hasFilter(d.key))
             return incomeLabel[d.key] + " (0%)";
@@ -384,7 +373,6 @@ incomeDistributionChart
     .title(function (d) {
         return incomeLabel[d.key]+": "+d.value+ " individuals";
     })
-    .xAxisLabel('Count')
     .elasticX(true)
     .xAxis().ticks(5);
 
@@ -459,7 +447,26 @@ function drawRow(rowData,container, lineNumber) {
         row.append($("<td>" + rowData[i] + "</td>"));
        } 
 }
- drawTable(migrationData,"#migration-matrix");
+ // drawTable(migrationData,"#migration-matrix");
 
+var grid;
+  var columns = [
+    {id: "0", name: "0", field: "0"},
+    {id: "1", name: "1", field: "1"},
+    {id: "2", name: "2", field: "2"},
+    {id: "3", name: "3", field: "3"},
+    {id: "4", name: "4", field: "4"},
+    {id: "5", name: "5", field: "5"}
+  ];
+
+  var options = {
+    enableCellNavigation: true,
+    enableColumnReorder: false
+  };
+
+
+
+
+    grid = new Slick.Grid("#migration-matrix", migrationData, columns, options);
 
 
