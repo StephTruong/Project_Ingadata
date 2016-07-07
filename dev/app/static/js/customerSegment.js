@@ -359,6 +359,7 @@ ageDistributionChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
         return ageLabel[d.key]+": "+d.value+ " individuals";
     })
     .elasticX(true)
+    .xAxisLabel('Count')
     .xAxis().ticks(5);
 
 incomeDistributionChart 
@@ -383,30 +384,29 @@ incomeDistributionChart
     .title(function (d) {
         return incomeLabel[d.key]+": "+d.value+ " individuals";
     })
+    .xAxisLabel('Count')
     .elasticX(true)
     .xAxis().ticks(5);
 
 //migration value impact
 valueImpactChart.width(1160)
     .height(250)
-    .margins({ top: 10, right: 10, bottom: 20, left: 40 })
+    .margins({ top: 10, right: 40, bottom: 20, left: 40 })
     .dimension(yearDim)
     .transitionDuration(500)
     .elasticY(true)
     .brushOn(false)
-    .legend(dc.legend().x(800).y(10).itemHeight(13).gap(5))
-    .valueAccessor(function (d) {
-        return d.value;
-    })
+    .legend(dc.legend().x(1000).y(100).itemHeight(13).gap(5))
     .title(function (d) {
         return "\Migration Setting: " + d.key;
-
     })
+    .yAxisPadding(300) 
+    .xAxisLabel('Years')
+    .yAxisLabel('Value (kRMB)')
     .x(d3.scale.linear().domain([0, 12]))
     .compose([
-        dc.lineChart(valueImpactChart).group(defaultGroup, "Default"),
-        dc.lineChart(valueImpactChart).colors(['#9182bd']).group(alt1Group)
-       
+        dc.lineChart(valueImpactChart).group(defaultGroup, "Default").valueAccessor(function (d) {return d.value/1000;}),
+        dc.lineChart(valueImpactChart).colors(['#9182bd']).group(alt1Group).valueAccessor(function (d) {return d.value/1000;})
     ]);
 
 
