@@ -4,12 +4,14 @@ from flask import Blueprint, request, render_template, \
                   jsonify
 from flask.ext.login import (current_user, login_required, login_user, logout_user, confirm_login, fresh_login_required)
 from app import app
-import json, pandas as pd, numpy as np
+import json, pandas as pd, numpy as np, datetime
 import models
 
 # Define the blueprint: 'dashboard', set its url prefix: app.url/dashboard
 mod_dashboard = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 
+customerJson = json.dumps(models.customer_stats.objects.to_json())
+global originalCatAnnualEvoSum
 
 @mod_dashboard.before_request
 def make_session_permanent():
@@ -20,9 +22,7 @@ def make_session_permanent():
 @mod_dashboard.route('/', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-	customerJson = json.dumps(models.customer_stats.objects.to_json())
 	df= pd.read_json(eval(customerJson))
-	
 	# Segment yearly migration pattern
 	migrationsStacked = df.groupby(['prevCategory','category']).agg({'annualSpent' : 'count'})
 	migrations = migrationsStacked.unstack(level=-1)
@@ -31,18 +31,54 @@ def dashboard():
 	migrationsToProspect = migrations.sum(axis=1)*0.06
 	migrations= pd.concat([migrations,migrationsToProspect ],axis=1)
 	migrations.columns = [0, 1, 2, 3, 4, 5]
-	migrations = migrations.apply(lambda x: 100*x/float(x.sum()),axis=1).round(2)
-	migrationJson= migrations.T.to_json()
+	migrationsPct = migrations.apply(lambda x: 100*x/float(x.sum()),axis=1).round(2)
+	migrationJson= migrationsPct.to_json(orient="values")
+	valueImpactJson = impactValueCalc(migrationsPct)
+	
+	#circular network
+	migrationsStacked2 = migrations.stack()
+	migrationsConnection=[]
+	for i in range(6):
+	    for j in range(6):
+	        try:
+	            value = migrationsStacked2.loc[i,j]
+	        except TypeError,IndexError:
+	            value = 0
+	        migrationsConnection.append(["cat"+str(i),"cat"+str(j),round(value)])
+	
+	migrationConnectionJson = json.dumps(migrationsConnection)
 
+	print migrationConnectionJson
+
+	template_data= {
+		'customerData': customerJson,
+		'migrationData': migrationJson,
+		'migrationConnectionData': migrationConnectionJson,
+		'valueImpactData': valueImpactJson
+		}
+	return render_template("dashboard/index.html", **template_data)
+
+@mod_dashboard.route('/migrationImpact', methods=['GET', 'POST'])
+def updateMigrationImpactValue():
+	migrations_json = request.get_data().decode('utf-8')
+	migrations = pd.read_json(migrations_json)
+
+	valueImpactJson = impactValueCalc(migrations,1)
+	print valueImpactJson
+	return valueImpactJson
+
+
+# ProspectPool: the pool of potential customer (includes current customer)
+def impactValueCalc(migrations, update=0, prospectPool=10000):
 	### Value impact
 	# Calculate the average spending per person binned by segment
+	df= pd.read_json(eval(customerJson))
 	catAnnualSpent = df.groupby('category').sum()['annualSpent']
 	catAnnualSpent[5]=0
 	annualSpentAvg = catAnnualSpent/migrations.sum(axis=0)
 	annualSpentAvg[5] = 0
 
 	# Calculate counts per segment
-	prospectPool = 10000 # aka the pool of potential customer (includes current customer)
 	catCount = df.groupby('category').count()['annualSpent']
 	catCount[5]= prospectPool - catCount.sum()
 	
@@ -57,16 +93,11 @@ def dashboard():
 	    catAnnualSpentEvolution.append(annualSpentAvg*prevCount)
 
 	#Export results to JSON
+	if update == 0:
+		global originalCatAnnualEvoSum
+		originalCatAnnualEvoSum = pd.DataFrame(catAnnualSpentEvolution).sum(axis=1)
 	catAnnualSpentEvoSum = pd.DataFrame(catAnnualSpentEvolution).sum(axis=1)
-	catAnnualSpentEvoSum2 = catAnnualSpentEvoSum #second dataset for drawing test purpose
-	newdf = pd.DataFrame({"Default":catAnnualSpentEvoSum,"Alt1":catAnnualSpentEvoSum2+abs(np.random.rand(13)*500000),"Year": [int(i) for i in range(13)]})
+	newdf = pd.DataFrame({"Default":originalCatAnnualEvoSum,"Alt1":catAnnualSpentEvoSum,"Year": [int(i)+ datetime.date.today().year for i in range(13)]})
 	valueImpactJson = newdf.to_json(orient="records")
-	
-	template_data= {
-		'customerData': customerJson,
-		'migrationData': migrationJson,
-		'valueImpactData': valueImpactJson
-		}
-	return render_template("dashboard/index.html", **template_data)
-
-
+	print valueImpactJson
+	return valueImpactJson

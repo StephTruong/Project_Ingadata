@@ -174,11 +174,17 @@
 
                         <div class="col-lg-6 col-sm-6 col-xs-12">
                           <strong>Migration Matrix</strong> 
+                          <a class="reset" id="impact-reset"
+                              style="display: none;">reset</a>
 
                            <div class="table-responsive">
-                              <table  id="migration-matrix" class="table table-bordered table-hover table-striped">
+                              <table  id="migration-matrix" class="table">
                               </table>
                            </div>
+                        </div>
+                         <div  id="migration-chart" class="col-lg-6 col-sm-6 col-xs-12">
+                          <strong>Migration Chart</strong> 
+                         
                         </div>
                         <div class="clearfix"></div>
                      </div>
@@ -219,7 +225,10 @@
       <!-- application custom javascript -->
       <script> var customerData= {{customerData|safe }};      </script>
       <script> var migrationData= {{migrationData|safe }};     </script>
-      <script> var valueImpactData= {{valueImpactData|safe }};     </script>
+      <script> var migrationConnectionData= {{migrationConnectionData|safe }};     </script>
 
+      <script> var valueImpactData= {{valueImpactData|safe }};     </script>
+      <script src="/static/js/basic-editable-table.js"></script>
+      <script src="/static/js/circular_network.js"></script>
       <script src="/static/js/customerSegment.js"></script>
 {% endblock %}

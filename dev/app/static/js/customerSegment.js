@@ -19,15 +19,16 @@ var incomeDistributionChart = dc.rowChart('#income-distribution-chart');
 var valueImpactChart = dc.compositeChart('#value-impact-chart');
 
 //We set some variables for autoscaling dc charts.
-var bubbleChartWidth= document.getElementById('category-bubble-chart').offsetWidth;
-var ageDistributionChartWidth= document.getElementById('age-distribution-chart').offsetWidth;
-var incomeDistributionChartWidth= document.getElementById('income-distribution-chart').offsetWidth;
-
+var bubbleChartWidth = document.getElementById('category-bubble-chart').offsetWidth;
+var ageDistributionChartWidth = document.getElementById('age-distribution-chart').offsetWidth;
+var incomeDistributionChartWidth = document.getElementById('income-distribution-chart').offsetWidth;
+var valueImpactChartWidth = document.getElementById('value-impact-chart').offsetWidth;
 
 customerData = $.parseJSON(customerData);
 // valueImpactData = $.parseJSON(valueImpactData);
 
-var numberFormat = d3.format('.2f');
+var numberFormat = d3.format(',.2f');
+var yearFormat = d3.time.format("%Y");
 var categoryLabel=[ "Fashionistas","Enthusiasts" ,"Big Potential", "Moderates","Discount Seekers"];
 var ageLabel=[ "<24 yo","25-34 yo" ,"35-44 yo", "45-54 yo","55-64 yo","+75 yo"];
 var incomeLabel=[ "<10k","10-30k" ,"30-50k", "50-70k","+70k"];
@@ -50,9 +51,7 @@ customerData.forEach(function (d) {
 var ndx = crossfilter(customerData);
 var all = ndx.groupAll();
 
-//See the [crossfilter API](https://github.com/square/crossfilter/wiki/API-Reference) for reference.
-var ndxImpact = crossfilter(valueImpactData);
-var allImpact = ndxImpact.groupAll();
+
 
 
 // Dimensions:
@@ -111,7 +110,6 @@ var catDim5 = ndx.dimension(function (d) {
     else console.log("Income do not fit into bins.");
 });
 
- var yearDim = ndxImpact.dimension(function (d) { return d["Year"]; });
 
 // Groups
 var customerBehaviourGroup =catDim.group().reduce(
@@ -222,8 +220,6 @@ var average = function(d) {
 
 
 
-var defaultGroup = yearDim.group().reduceSum(function (d) { return d["Default"]; });
-var alt1Group = yearDim.group().reduceSum(function (d) { return d["Alt1"]; });
 
 
 
@@ -359,7 +355,6 @@ ageDistributionChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
         return ageLabel[d.key]+": "+d.value+ " individuals";
     })
     .elasticX(true)
-    .xAxisLabel('Count')
     .xAxis().ticks(5);
 
 incomeDistributionChart 
@@ -384,30 +379,11 @@ incomeDistributionChart
     .title(function (d) {
         return incomeLabel[d.key]+": "+d.value+ " individuals";
     })
-    .xAxisLabel('Count')
     .elasticX(true)
     .xAxis().ticks(5);
 
 //migration value impact
-valueImpactChart.width(1160)
-    .height(250)
-    .margins({ top: 10, right: 40, bottom: 20, left: 40 })
-    .dimension(yearDim)
-    .transitionDuration(500)
-    .elasticY(true)
-    .brushOn(false)
-    .legend(dc.legend().x(1000).y(100).itemHeight(13).gap(5))
-    .title(function (d) {
-        return "\Migration Setting: " + d.key;
-    })
-    .yAxisPadding(300) 
-    .xAxisLabel('Years')
-    .yAxisLabel('Value (kRMB)')
-    .x(d3.scale.linear().domain([0, 12]))
-    .compose([
-        dc.lineChart(valueImpactChart).group(defaultGroup, "Default").valueAccessor(function (d) {return d.value/1000;}),
-        dc.lineChart(valueImpactChart).colors(['#9182bd']).group(alt1Group).valueAccessor(function (d) {return d.value/1000;})
-    ]);
+DrawValueImpactChart(valueImpactData);
 
 
 //simply call `.renderAll()` to render all charts on the page
@@ -430,36 +406,128 @@ window.onresize = function(event) {
 
 };
 
+function DrawValueImpactChart (data) {
+    //See the [crossfilter API](https://github.com/square/crossfilter/wiki/API-Reference) for reference.
+    var ndxImpact = crossfilter(data);
+    var allImpact = ndxImpact.groupAll();
+    var yearDim = ndxImpact.dimension(function (d) { return  new Date(d["Year"],1,1)});
+    var defaultGroup = yearDim.group().reduceSum(function (d) { return d["Default"]; });
+    var alt1Group = yearDim.group().reduceSum(function (d) { return d["Alt1"]; });
+    
+    valueImpactChart
+        .width(valueImpactChartWidth)
+        .margins({ top: 10, right: 40, bottom: 20, left: 40 })
+        .dimension(yearDim)
+        .transitionDuration(500)
+        .elasticY(true)
+        .brushOn(false)
+        .legend(dc.legend().x(valueImpactChartWidth-200).y(100).itemHeight(13).gap(5))
+        .title(function (d) {
+            return [
+            'Year: ' + yearFormat(d.key),
+            'Expected Value (RMB): ' + numberFormat(d.value) 
+        ].join('\n');
+        })
+        .yAxisPadding(300) 
+        // .xAxisLabel('Years')
+        // .yAxisLabel('Value (kRMB)',30)
+        .x(d3.time.scale().domain([new Date(2016,1,1), new Date(2028,1,1)]))
+        .xUnits(d3.time.years)
 
+        .compose([
+            dc.lineChart(valueImpactChart).group(defaultGroup, "Default").valueAccessor(function (d) {return d.value/1000;}).dashStyle([3,1,1,1]).renderDataPoints({radius: 2, fillOpacity: 0.8, strokeOpacity: 0.8}),
+            dc.lineChart(valueImpactChart).group(alt1Group, "Alternative").valueAccessor(function (d) {return d.value/1000;}).renderDataPoints({radius: 2, fillOpacity: 0.8, strokeOpacity: 0.8})
+        ]);
+
+         // valueImpactChart.renderlet(function (chart) {
+         //   // rotate x-axis labels
+         //   chart.selectAll('g.x text')
+         //     .attr('transform', 'translate(-10,10) rotate(315)')
+         //     ;
+         // })
+         dc.renderAll();
+}
 //migration table 
+//  // drawTable(migrationData,"#migration-matrix");
 
-function drawTable(data,container) {
-    drawHeader(Object.keys(data[0]),container);
-    for (var i = 0; i < Object.keys(data).length; i++) {
-        drawRow(data[i],container, i);
+
+function drawTable(data,tableContainer, valueChart) {
+    var columnNames = [0,1,2,3,4,5]
+    // Charts
+    var table = Table()
+      .on('edit', function(d){ 
+        updateValueImpactChart(d,valueChart);
+        // updateChart(d);
+       });
+
+    function updateTable(_data){
+        d3.select(tableContainer)
+            .datum(_data)
+            .call(table);
     }
+    // function updateChart(_data){
+    //     d3.select(chartContainer)
+    //         .datum(_data)
+    //         .call(circularNetwork);
+    // }
+
+    // var circularNetwork = CircularNetwork()
+    //     .width(500)
+    //     .height(500)
+    //     .margins({top:50, right:50, bottom:50, left:50})
+    //     .enableTooltips(true)
+    //     .labelOffset(5);
+
+    function updateValueImpactChart(_data, valueChart){
+        $.post(
+            '/dashboard/migrationImpact', 
+            data = JSON.stringify(_data), 
+            function(data) {
+                data = $.parseJSON(data)
+                DrawValueImpactChart(data)
+            })
+    }
+
+
+    // updateChart(data)
+    updateTable([data, columnNames])
+
+    // Update charts on reset
+    d3.select('.impact-reset')
+        .on("mouseup", function(d, i){
+        // updateChart(data);
+         updateTable([data, columnNames]);
+        });
 }
 
-function drawHeader(rowData,container) {
+ 
+
+drawTable(migrationData,"#migration-matrix","#migration-chart", "#value-impact-chart");
+
+// circular chart
+function drawCircular(data,chartContainer) {
+    console.log(data)
+    var columnNames = [0,1,2,3,4,5]
+    // Charts
+
+    function updateChart(_data){
+        d3.select(chartContainer)
+            .datum(_data)
+            .call(circularNetwork);
+    }
+
+    var circularNetwork = CircularNetwork()
+        .width(500)
+        .height(500)
+        .margins({top:50, right:50, bottom:50, left:50})
+        .enableTooltips(true)
+        .labelOffset(5);
     
-    var row = $("<tr />")
-    row.append($("<th>From/To</th>"));
-    $(container).append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it   
-    for (var i = 0; i < Object.keys(rowData).length; i++) {
-        row.append($("<th>" + rowData[i] + "</th>"));
-       } 
+
+
+    updateChart(data)
+
 }
-function drawRow(rowData,container, lineNumber) {
 
-    var row = $("<tr />")
-    $(container).append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
-    row.append($("<th>" + lineNumber+ "</th>"));
-    
-    for (var i = 0; i < Object.keys(rowData).length; i++) {
-        row.append($("<td>" + rowData[i] + "</td>"));
-       } 
-}
- drawTable(migrationData,"#migration-matrix");
-
-
+drawCircular(migrationConnectionData,"#migration-chart");
 
