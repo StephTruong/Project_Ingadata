@@ -416,7 +416,7 @@ function DrawValueImpactChart (data) {
     
     valueImpactChart
         .width(valueImpactChartWidth)
-        .margins({ top: 10, right: 40, bottom: 20, left: 40 })
+        .margins({ top: 10, right: 10, bottom: 20, left: 40 })
         .dimension(yearDim)
         .transitionDuration(500)
         .elasticY(true)
@@ -447,12 +447,20 @@ function DrawValueImpactChart (data) {
          // })
          dc.renderAll();
 }
+
 //migration table 
-//  // drawTable(migrationData,"#migration-matrix");
-
-
-function drawTable(data,tableContainer, valueChart) {
+function drawTable(data, tableContainer,chartContainer, valueChart) {
     var columnNames = [0,1,2,3,4,5]
+
+    var dataPct =[];
+    for(var i=0;i < data.length;i++){
+        var sum = data[i].reduce(function(a, b) { return a + b; }, 0);
+        console.log(sum)
+        dataPct[i]= data[i].map(function(e) {  
+                return Math.round(e/sum*100*10)/10;
+            });    
+        }
+
     // Charts
     var table = Table()
       .on('edit', function(d){ 
@@ -465,18 +473,12 @@ function drawTable(data,tableContainer, valueChart) {
             .datum(_data)
             .call(table);
     }
+
     // function updateChart(_data){
     //     d3.select(chartContainer)
     //         .datum(_data)
     //         .call(circularNetwork);
     // }
-
-    // var circularNetwork = CircularNetwork()
-    //     .width(500)
-    //     .height(500)
-    //     .margins({top:50, right:50, bottom:50, left:50})
-    //     .enableTooltips(true)
-    //     .labelOffset(5);
 
     function updateValueImpactChart(_data, valueChart){
         $.post(
@@ -488,46 +490,125 @@ function drawTable(data,tableContainer, valueChart) {
             })
     }
 
+    // var circularNetwork = CircularNetwork()
+    //     .width(500)
+    //     .height(500)
+    //     .margins({top:50, right:50, bottom:50, left:50})
+    //     .enableTooltips(true)
+    //     .labelOffset(5);
+    
+
+
 
     // updateChart(data)
-    updateTable([data, columnNames])
+    updateTable([dataPct, columnNames])
+    // updateChart(connectionData)
 
     // Update charts on reset
     d3.select('.impact-reset')
         .on("mouseup", function(d, i){
-        // updateChart(data);
-         updateTable([data, columnNames]);
+        // updateChart(connectionData);
+         updateTable([dataPct, columnNames]);
         });
 }
 
- 
+drawTable(migrationData, "#migration-matrix", "#value-impact-chart");
 
-drawTable(migrationData,"#migration-matrix","#migration-chart", "#value-impact-chart");
+//migration chart
 
-// circular chart
-function drawCircular(data,chartContainer) {
-    console.log(data)
-    var columnNames = [0,1,2,3,4,5]
-    // Charts
+function drawChordChart(data, container) {
+    var width = 720,
+    height = 720,
+    outerRadius = Math.min(width, height) / 2 - 10,
+    innerRadius = outerRadius - 16;
+     
+    var formatPercent = d3.format(". individuals");
+     
+    var arc = d3.svg.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius);
+     
+    var layout = d3.layout.chord()
+    .padding(.04)
+    .sortSubgroups(d3.descending)
+    .sortChords(d3.ascending);
+     
+    var path = d3.svg.chord()
+    .radius(innerRadius);
+     
+    var svg = d3.select(container).append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .append("g")
+    .attr("id", "circle")
+    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+     
+    svg.append("circle")
+    .attr("r", outerRadius);
+    var segments= [{"name":0,"color":"#9ACD32"},{"name":1,"color":"#377DB8"},{"name":2,"color":"#F5DEB3"},{"name":3,"color":"#EE82EE"},{"name":4,"color":"#40E0D0"},{"name":5,"color":"#FF6347"}]
+    var matrix = data
 
-    function updateChart(_data){
-        d3.select(chartContainer)
-            .datum(_data)
-            .call(circularNetwork);
+
+     
+    // Compute the chord layout.
+    layout.matrix(matrix);
+     
+    // Add a group per neighborhood.
+    var group = svg.selectAll(".group")
+    .data(layout.groups)
+    .enter().append("g")
+    .attr("class", "group")
+    .on("mouseover", mouseover);
+     
+    // Add a mouseover title.
+    // group.append("title").text(function(d, i) {
+    // return segments[i].name + ": " + formatPercent(d.value) + " of origins";
+    // });
+     
+    // Add the group arc.
+    var groupPath = group.append("path")
+    .attr("id", function(d, i) { return "group" + i; })
+    .attr("d", arc)
+    .style("fill", function(d, i) { return segments[i].color; });
+     
+    // Add a text label.
+    var groupText = group.append("text")
+    .attr("x", 6)
+    .attr("dy", 15);
+     
+    groupText.append("textPath")
+    .attr("xlink:href", function(d, i) { return "#group" + i; })
+    .text(function(d, i) { return segments[i].name; }).attr("startOffset", "20%");
+     
+    // Remove the labels that don't fit. :(
+    groupText.filter(function(d, i) { return groupPath[0][i].getTotalLength() / 2 - 16 < this.getComputedTextLength(); })
+    .remove();
+     
+    // Add the chords.
+    var chord = svg.selectAll(".chord")
+    .data(layout.chords)
+    .enter().append("path")
+    .attr("class", "chord")
+    .style("fill", function(d) { return segments[d.source.index].color; })
+    .attr("d", path);
+     
+    // Add an elaborate mouseover title for each chord.
+     chord.append("title").text(function(d) {
+     return segments[d.source.index].name
+     + " → " + segments[d.target.index].name
+     + ": " + formatPercent(d.source.value)
+     + "\n" + segments[d.target.index].name
+     + " → " + segments[d.source.index].name
+     + ": " + formatPercent(d.target.value);
+     });
+     
+    function mouseover(d, i) {
+    chord.classed("fade", function(p) {
+    return p.source.index != i
+    && p.target.index != i;
+    });
     }
 
-    var circularNetwork = CircularNetwork()
-        .width(500)
-        .height(500)
-        .margins({top:50, right:50, bottom:50, left:50})
-        .enableTooltips(true)
-        .labelOffset(5);
-    
-
-
-    updateChart(data)
-
 }
-
-drawCircular(migrationConnectionData,"#migration-chart");
+drawChordChart(migrationData, "#migration-chord-chart")
 

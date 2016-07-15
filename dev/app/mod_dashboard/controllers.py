@@ -32,28 +32,30 @@ def dashboard():
 	migrations= pd.concat([migrations,migrationsToProspect ],axis=1)
 	migrations.columns = [0, 1, 2, 3, 4, 5]
 	migrationsPct = migrations.apply(lambda x: 100*x/float(x.sum()),axis=1).round(2)
-	migrationJson= migrationsPct.to_json(orient="values")
-	valueImpactJson = impactValueCalc(migrationsPct)
+	
+	migrationJson= migrations.to_json(orient="values")
+	migrationPctJson= migrationsPct.to_json(orient="values")
+	valueImpactJson = impactValueCalc(migrationsPct,0)
 	
 	#circular network
-	migrationsStacked2 = migrations.stack()
-	migrationsConnection=[]
-	for i in range(6):
-	    for j in range(6):
-	        try:
-	            value = migrationsStacked2.loc[i,j]
-	        except TypeError,IndexError:
-	            value = 0
-	        migrationsConnection.append(["cat"+str(i),"cat"+str(j),round(value)])
+	# migrationsStacked2 = migrations.stack()
+	# migrationsConnection=[]
+	# for i in range(6):
+	#     for j in range(6):
+	#         try:
+	#             value = migrationsStacked2.loc[i,j]
+	#         except TypeError,IndexError:
+	#             value = 0
+	#         migrationsConnection.append(["cat"+str(i),"cat"+str(j),round(value)])
 	
-	migrationConnectionJson = json.dumps(migrationsConnection)
+	# migrationConnectionJson = json.dumps(migrationsConnection)
 
-	print migrationConnectionJson
+	# print migrationConnectionJson
 
 	template_data= {
 		'customerData': customerJson,
+		'migrationPctData': migrationPctJson,
 		'migrationData': migrationJson,
-		'migrationConnectionData': migrationConnectionJson,
 		'valueImpactData': valueImpactJson
 		}
 	return render_template("dashboard/index.html", **template_data)
@@ -99,5 +101,4 @@ def impactValueCalc(migrations, update=0, prospectPool=10000):
 	catAnnualSpentEvoSum = pd.DataFrame(catAnnualSpentEvolution).sum(axis=1)
 	newdf = pd.DataFrame({"Default":originalCatAnnualEvoSum,"Alt1":catAnnualSpentEvoSum,"Year": [int(i)+ datetime.date.today().year for i in range(13)]})
 	valueImpactJson = newdf.to_json(orient="records")
-	print valueImpactJson
 	return valueImpactJson

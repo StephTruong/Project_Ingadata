@@ -170,40 +170,39 @@
                      </div>
                      <!-- /.panel-heading -->
                      <div class="panel-body">
-                        <div class="row">
-
-                        <div class="col-lg-6 col-sm-6 col-xs-12">
-                          <strong>Migration Matrix</strong> 
-                          <a class="reset" id="impact-reset"
-                              style="display: none;">reset</a>
-
-                           <div class="table-responsive">
-                              <table  id="migration-matrix" class="table">
-                              </table>
+                         <div class="row">
+                          
+                           <div class="col-lg-12">
+                              <strong>Migration Chart</strong> 
+                              <div id="migration-chord-chart">  </div>
                            </div>
+                           <div class="clearfix"></div>
                         </div>
-                         <div  id="migration-chart" class="col-lg-6 col-sm-6 col-xs-12">
-                          <strong>Migration Chart</strong> 
-                         
+
+                        <div class="row">
+                           <div class="col-lg-12">
+                              <strong>Migration Matrix</strong> 
+                              <a class="reset" id="impact-reset" style="display: none;">reset</a>
+                              <div class="table-responsive">
+                                 <table  id="migration-matrix" class="table"></table>
+                              </div>
+                              <div><strong>Migration Value Impact</strong> </div>
+                              <div id="value-impact-chart" >
+                                    
+                              </div>
+                           </div>    
+      
+                           <div class="clearfix"></div>
                         </div>
-                        <div class="clearfix"></div>
+                        
                      </div>
-                     <div class="row">
-                        <div id="value-impact-chart" class="col-lg-6 col-sm-6 col-xs-12">
-                          <strong>Migration Value Impact</strong> 
-
-                           
-                        </div>
-                        <div class="clearfix"></div>
-                     </div>
-
-                     </div>
-
+                     
                      <!-- /.panel-body -->
                   </div>
                   <!-- /.panel -->
                </div>
             </div>
+         
          </div>
 {% endblock %}
 
@@ -225,10 +224,8 @@
       <!-- application custom javascript -->
       <script> var customerData= {{customerData|safe }};      </script>
       <script> var migrationData= {{migrationData|safe }};     </script>
-      <script> var migrationConnectionData= {{migrationConnectionData|safe }};     </script>
-
       <script> var valueImpactData= {{valueImpactData|safe }};     </script>
       <script src="/static/js/basic-editable-table.js"></script>
-      <script src="/static/js/circular_network.js"></script>
+      // <script src="/static/js/circular_network.js"></script>
       <script src="/static/js/customerSegment.js"></script>
 {% endblock %}

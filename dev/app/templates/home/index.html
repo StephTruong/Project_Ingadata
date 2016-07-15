@@ -16,6 +16,8 @@
 
     <!-- Custom CSS -->
     <link href="/static/css/agency.css" rel="stylesheet">
+    <link href="/static/css/agency_custom.css" rel="stylesheet">
+
     <link href="/static/css/landingCustom.css" rel="stylesheet">
     
     <!-- Custom Fonts -->
@@ -417,16 +419,24 @@
 
      <!-- Contact Section -->
     <section id="contact">
+        {% if scroll %}
+            <script>
+                document.getElementById('{{ scroll }}').scrollIntoView();
+            </script>
+            {% endif %}
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
                     <h2 class="section-heading">联系我们</h2>
                     <h3 class="section-subheading text-muted"></h3>
+                    {% for message in get_flashed_messages() %}
+                      <div class="flash">{{ message }}</div>
+                    {% endfor %}
                 </div>
             </div>
             <div class="row">
                 <div class="col-lg-12">
-                    <form name="sentMessage" id="contactForm" novalidate>
+                 <!--    <form name="sentMessage" id="contactForm" novalidate>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -458,7 +468,34 @@
                                 <button type="submit" class="btn btn-xl">发送</button>
                             </div>
                         </div>
-                    </form>
+                    </form> -->
+                        <div class="form-style-8">
+                              <form action="{{ url_for('home.contact') }}" method=post>
+                                
+                                {{ form.hidden_tag() }}
+                                 <div class="col-md-6">
+<!--                                 {{ form.name.label }}
+ -->                                {{ form.name }}
+                               
+<!--                                 {{ form.company.label }}
+ -->                                {{ form.company }}
+                                
+<!--                                 {{ form.email.label }}
+ -->                                {{ form.email }}
+
+<!--                                {{ form.phone.label }}
+ -->                                {{ form.phone }}
+                                </div>
+                                 <div class="col-md-6">                          
+<!--                                 {{ form.message.label }}
+ -->                                {{ form.message }}
+                                    {{ form.submit }}        
+                                 </div>
+                                 
+                              </form>
+
+                        </div>
+
                 </div>
             </div>
         </div>
