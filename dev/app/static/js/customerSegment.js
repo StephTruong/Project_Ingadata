@@ -405,6 +405,15 @@ window.onresize = function(event) {
   incomeDistributionChart.transitionDuration(750);
 
 };
+// // with default value
+// // load the matrix -> migration pct 
+// plot the chord diagram <- migration counts
+//  update the impact chart 
+//  save revenues in the table
+//  // on update of matrix -> migration pct
+//  // update chord diagram -> counts
+//  update impact chart  <- migration pct -> revenues
+//  save revenues in the table <- revenues
 
 function DrawValueImpactChart (data) {
     //See the [crossfilter API](https://github.com/square/crossfilter/wiki/API-Reference) for reference.
@@ -448,24 +457,29 @@ function DrawValueImpactChart (data) {
          dc.renderAll();
 }
 
-//migration table 
+var rowID=0;
+//migration matrix 
 function drawTable(data, tableContainer,chartContainer, valueChart) {
     var columnNames = [0,1,2,3,4,5]
+    
 
     var dataPct =[];
     for(var i=0;i < data.length;i++){
         var sum = data[i].reduce(function(a, b) { return a + b; }, 0);
-        console.log(sum)
         dataPct[i]= data[i].map(function(e) {  
                 return Math.round(e/sum*100*10)/10;
             });    
         }
+    var currentData =dataPct;
 
     // Charts
     var table = Table()
       .on('edit', function(d){ 
-        updateValueImpactChart(d,valueChart);
-        // updateChart(d);
+        currentData = d
+        // updateValueImpactChart(d,valueChart);
+        //updateTable(d);
+        // console.log(d)
+
        });
 
     function updateTable(_data){
@@ -479,36 +493,46 @@ function drawTable(data, tableContainer,chartContainer, valueChart) {
     //         .datum(_data)
     //         .call(circularNetwork);
     // }
-
+   
     function updateValueImpactChart(_data, valueChart){
         $.post(
             '/dashboard/migrationImpact', 
             data = JSON.stringify(_data), 
             function(data) {
-                data = $.parseJSON(data)
-                DrawValueImpactChart(data)
+                
+                data = $.parseJSON(data);
+                DrawValueImpactChart(data);
+                insertRowRevenueTable(data,"#revenue-table",rowID);
+                rowID++;
+                console.log(rowID)
             })
     }
-
-    // var circularNetwork = CircularNetwork()
-    //     .width(500)
-    //     .height(500)
-    //     .margins({top:50, right:50, bottom:50, left:50})
-    //     .enableTooltips(true)
-    //     .labelOffset(5);
-    
 
 
 
     // updateChart(data)
-    updateTable([dataPct, columnNames])
+    updateTable([dataPct, columnNames]);
+    drawRevenueTable("#revenue-table");
+
     // updateChart(connectionData)
 
     // Update charts on reset
-    d3.select('.impact-reset')
-        .on("mouseup", function(d, i){
+    d3.select('#impact-reset')
+        .on("click", function(d, i){
+        console.log("reset");
         // updateChart(connectionData);
-         updateTable([dataPct, columnNames]);
+        currentData = dataPct
+        updateTable([currentData, columnNames]);
+        updateValueImpactChart( currentData,valueChart);
+
+        });
+    d3.select('#impact-update')
+        .on("click", function(d, i){
+        // console.log(d3.selectAll("table"))
+        // console.log(currentData)
+        // updateTable([data, columnNames])
+        // updateChart(connectionData);
+        updateValueImpactChart( currentData,valueChart);
         });
 }
 
@@ -520,7 +544,7 @@ function drawChordChart(data, container) {
     var width = 720,
     height = 720,
     outerRadius = Math.min(width, height) / 2 - 10,
-    innerRadius = outerRadius - 16;
+    innerRadius = outerRadius - 24;
      
     var formatPercent = d3.format(". individuals");
      
@@ -612,3 +636,44 @@ function drawChordChart(data, container) {
 }
 drawChordChart(migrationData, "#migration-chord-chart")
 
+
+function drawRevenueTable(tableContainer) {
+    var periods = []
+    for (var i= 0; i< 12; i++){
+        periods[i]=2016+i
+    }
+
+    var info = d3.select(tableContainer),
+        thead = info.append("thead"),
+        tbody = info.append("tbody");
+
+    thead.append("tr").append("th").text("")
+    thead.select("tr")
+     .selectAll("th")
+     .data(periods, function(d) { return d; })
+     .enter()
+     .insert("th")
+     .text(function (d) { return (d);  });
+
+    
+}
+
+function insertRowRevenueTable(data,tableContainer){
+    var data2 =[];
+    for(var i=0;i < data.length;i++){
+        data2[i]= Math.round(data[i]['Alt1'])
+    }
+ console.log(data2)
+
+    var rowIDText = ""
+    if (rowID==0){
+        rowIDText= "Default"
+
+    }else{
+        rowIDText = "Alt"+rowID
+    }
+    var tbody = d3.select(tableContainer).select("tbody")
+    tbody.append("tr").insert("td").text(rowIDText)
+    tbody.selectAll("tr").selectAll("td").data(data2).enter().append("td").text(function (d) { return (d);  });
+    
+};
