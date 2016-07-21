@@ -634,7 +634,7 @@ drawChordChart(migrationData, "#migration-chord-chart")
 
 function drawRevenueTable(tableContainer) {
     var periods = []
-    for (var i= 0; i< 12; i++){
+    for (var i= 0; i< 13; i++){
         periods[i]=2016+i
     }
 
@@ -642,32 +642,35 @@ function drawRevenueTable(tableContainer) {
         thead = info.append("thead"),
         tbody = info.append("tbody");
 
-    thead.append("tr").append("th").text("")
+    thead.append("tr")
+    .append("th").text("")
     thead.select("tr")
      .selectAll("th")
      .data(periods, function(d) { return d; })
      .enter()
      .insert("th")
      .text(function (d) { return (d);  });
+  
 
     
 }
 
 function insertRowRevenueTable(data,tableContainer){
-    var data2 =[];
-    for(var i=0;i < data.length;i++){
-        data2[i]= Math.round(data[i]['Alt1'])
-    }
-    console.log(data2)
+   
     var rowIDText = ""
     if (rowID==0){
         rowIDText= "Default"
-
     }else{
         rowIDText = "Alt"+rowID
     }
+
+    var data2 =[rowIDText];
+    for(var i=0;i < data.length;i++){
+        data2.push(Math.round(data[i]['Alt1']))
+    }
+    console.log(data2)
+    
     var tbody = d3.select(tableContainer).select("tbody")
-    tbody.append("tr").insert("td").text(rowIDText)
-    tbody.selectAll("tr").selectAll("td").data(data2).enter().append("td").text(function (d) { return (d);  });
+    tbody.insert("tr").selectAll("td").data(data2, function(d){ return (d);}).enter().insert("td").text(function (d) { return (d);  });
     
 };
