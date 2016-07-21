@@ -424,6 +424,8 @@ function DrawValueImpactChart (data) {
     
     valueImpactChart
         .width(valueImpactChartWidth)
+        // .width(1000)
+
         .margins({ top: 10, right: 10, bottom: 20, left: 40 })
         .dimension(yearDim)
         .transitionDuration(500)
