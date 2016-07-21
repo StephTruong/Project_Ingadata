@@ -385,7 +385,6 @@ incomeDistributionChart
 //migration value impact
 DrawValueImpactChart(valueImpactData);
 
-
 //simply call `.renderAll()` to render all charts on the page
 dc.renderAll();
 
@@ -458,6 +457,8 @@ function DrawValueImpactChart (data) {
 }
 
 var rowID=0;
+
+
 //migration matrix 
 function drawTable(data, tableContainer,chartContainer, valueChart) {
     var columnNames = [0,1,2,3,4,5]
@@ -470,16 +471,12 @@ function drawTable(data, tableContainer,chartContainer, valueChart) {
                 return Math.round(e/sum*100*10)/10;
             });    
         }
-    var currentData =dataPct;
+    var currentData = dataPct;
 
     // Charts
     var table = Table()
       .on('edit', function(d){ 
         currentData = d
-        // updateValueImpactChart(d,valueChart);
-        //updateTable(d);
-        // console.log(d)
-
        });
 
     function updateTable(_data){
@@ -488,23 +485,18 @@ function drawTable(data, tableContainer,chartContainer, valueChart) {
             .call(table);
     }
 
-    // function updateChart(_data){
-    //     d3.select(chartContainer)
-    //         .datum(_data)
-    //         .call(circularNetwork);
-    // }
+
    
     function updateValueImpactChart(_data, valueChart){
         $.post(
             '/dashboard/migrationImpact', 
             data = JSON.stringify(_data), 
-            function(data) {
-                
+            function(data) { 
+                // console.log(data)
                 data = $.parseJSON(data);
                 DrawValueImpactChart(data);
                 insertRowRevenueTable(data,"#revenue-table",rowID);
                 rowID++;
-                console.log(rowID)
             })
     }
 
@@ -513,6 +505,7 @@ function drawTable(data, tableContainer,chartContainer, valueChart) {
     // updateChart(data)
     updateTable([dataPct, columnNames]);
     drawRevenueTable("#revenue-table");
+    updateValueImpactChart(dataPct,valueChart);
 
     // updateChart(connectionData)
 
@@ -663,8 +656,7 @@ function insertRowRevenueTable(data,tableContainer){
     for(var i=0;i < data.length;i++){
         data2[i]= Math.round(data[i]['Alt1'])
     }
- console.log(data2)
-
+    console.log(data2)
     var rowIDText = ""
     if (rowID==0){
         rowIDText= "Default"
