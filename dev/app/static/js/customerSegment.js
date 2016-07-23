@@ -463,16 +463,21 @@ var rowID=0;
 
 //migration matrix 
 function drawTable(data, tableContainer,chartContainer, valueChart) {
-    var columnNames = [0,1,2,3,4,5]
+    var columnNames = [0,1,2,3,4,5,'Total']
     
-
+    function getSum(total, num) {
+        return total + num;
+    }
     var dataPct =[];
     for(var i=0;i < data.length;i++){
-        var sum = data[i].reduce(function(a, b) { return a + b; }, 0);
+        var sum = data[i].reduce(getSum, 0);
         dataPct[i]= data[i].map(function(e) {  
                 return Math.round(e/sum*100*10)/10;
             });    
+        // dataPct[i].push(Math.round(dataPct[i].reduce(getSum,0)))
         }
+
+
     var currentData = dataPct;
 
     // Charts
@@ -490,6 +495,8 @@ function drawTable(data, tableContainer,chartContainer, valueChart) {
 
    
     function updateValueImpactChart(_data, valueChart){
+   
+        console.log(_data)
         $.post(
             '/dashboard/migrationImpact', 
             data = JSON.stringify(_data), 
@@ -507,7 +514,10 @@ function drawTable(data, tableContainer,chartContainer, valueChart) {
     // updateChart(data)
     updateTable([dataPct, columnNames]);
     drawRevenueTable("#revenue-table");
-    updateValueImpactChart(dataPct,valueChart);
+
+    
+    
+    updateValueImpactChart(currentData,valueChart);
 
     // updateChart(connectionData)
 
@@ -518,7 +528,7 @@ function drawTable(data, tableContainer,chartContainer, valueChart) {
         // updateChart(connectionData);
         currentData = dataPct
         updateTable([currentData, columnNames]);
-        updateValueImpactChart( currentData,valueChart);
+        // updateValueImpactChart( currentData,valueChart);
 
         });
     d3.select('#impact-update')
@@ -527,7 +537,12 @@ function drawTable(data, tableContainer,chartContainer, valueChart) {
         // console.log(currentData)
         // updateTable([data, columnNames])
         // updateChart(connectionData);
-        updateValueImpactChart( currentData,valueChart);
+        // taking off the last columns (totals)
+        var currentData2 = []
+        for (var i = 0; i < currentData.length; i++) {
+            currentData2.push(currentData[i].slice(0,-1))
+        }
+        updateValueImpactChart(currentData2,valueChart);
         });
 }
 
@@ -668,6 +683,7 @@ function insertRowRevenueTable(data,tableContainer){
     for(var i=0;i < data.length;i++){
         data2.push(Math.round(data[i]['Alt1']))
     }
+
     console.log(data2)
     
     var tbody = d3.select(tableContainer).select("tbody")
