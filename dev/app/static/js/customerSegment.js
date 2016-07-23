@@ -9,6 +9,22 @@
 // Note: It is often a good idea to have these objects accessible at the global scope so that they can be modified or
 // filtered by other page controls.
 
+var CN = d3.locale({
+  "decimal": ".",
+  "thousands": ",",
+  "grouping": [3],
+  "currency": ["¥", ""],
+  "dateTime": "%a %b %e %X %Y",
+  "date": "%m/%d/%Y",
+  "time": "%H:%M:%S",
+  "periods": ["AM", "PM"],
+  "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+  "shortDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+  "shortMonths": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+});
+
+
 var categoryBubbleChart = dc.bubbleChart('#category-bubble-chart');
 var boxADS    = dc.numberDisplay("#number-ADS");
 var boxUPT    = dc.numberDisplay("#number-UPT");
@@ -28,6 +44,8 @@ customerData = $.parseJSON(customerData);
 // valueImpactData = $.parseJSON(valueImpactData);
 
 var numberFormat = d3.format(',.2f');
+var smallMoneyFormat =  CN.numberFormat('$,.2f');
+var bigMoneyFormat =  CN.numberFormat('$,.0f');
 var yearFormat = d3.time.format("%Y");
 var categoryLabel=[ "Fashionistas","Enthusiasts" ,"Big Potential", "Moderates","Discount Seekers"];
 var ageLabel=[ "<24 yo","25-34 yo" ,"35-44 yo", "45-54 yo","55-64 yo","+75 yo"];
@@ -312,22 +330,22 @@ categoryBubbleChart /* dc.bubbleChart('#category-bubble-chart', 'chartGroup') */
 
    //#### Box numbers
    boxADS
-      .formatNumber(d3.format("$.3r"))
+      .formatNumber(smallMoneyFormat)
       .valueAccessor(average)
       .group(avgAdsByCatGroup)
 
    boxUPT
-      .formatNumber(d3.format(".3r"))
+      .formatNumber(smallMoneyFormat)
       .valueAccessor(average)
       .group(avgUptByCatGroup);
    
    boxAUR
-      .formatNumber(d3.format("$.3r"))
+      .formatNumber(smallMoneyFormat)
       .valueAccessor(average)
       .group(avgAurByCatGroup);
  
    boxAAS
-      .formatNumber(d3.format("$.3r"))
+      .formatNumber(bigMoneyFormat)
       .valueAccessor(average)
       .group(avgAasByCatGroup);
 // age distribution
@@ -681,7 +699,7 @@ function insertRowRevenueTable(data,tableContainer){
 
     var data2 =[rowIDText];
     for(var i=0;i < data.length;i++){
-        data2.push(Math.round(data[i]['Alt1']))
+        data2.push(bigMoneyFormat(Math.round(data[i]['Alt1'])))
     }
 
     console.log(data2)
